@@ -4,16 +4,16 @@ Multi-threaded Wordpress password login brute forcer.
 
 I read somewhere in passing that during a CTF, someone had written a multi-threaded python script for checking Wordpress login/passwords.. well, it just kinda stuck in my head. I was very interested in see how fast it would be, how many threads would be too much for the webserver/wordpress/wordfence.
 
-Wordpress is running from a docker container. Just run
+Wordpress/mysql is running from a docker container.
 
 ```
 docker-compose up -d
 ```
 
-and it should be up on port 8000.
+Should get it up and running on port 8000
 
 
-#### First test.
+### First test:
 Took seven hours for the script to complete with a 1 million passwords, but since I didnt have global checks, I'm not sure when the password was found.
 *d'oh*
 
@@ -86,10 +86,11 @@ Worker #1 finished.
 ```
 
 
-#### Second Test
+### Second Test:
+Adding some cmd line arguments with argparse. Much better time here with a global var being checked on password found.
+Next tests will be for login attempt throughtling by wordfence.
 ```
-astonge@doom [05:53:19 PM] [~/code/wpbrute] [master *]
--> % time ./wpbrute.py -f passwords.txt -t 30
+$ astonge@doom time ./wpbrute.py -f passwords.txt -t 30
 Using password file passwords.txt
 Setting up 30 workers
 Using average size of 33333 lines/worker
