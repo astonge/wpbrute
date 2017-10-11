@@ -28,19 +28,19 @@ def check_pass(passwords, url, user, threadNum, timing, q, debug):
 
 		if re.search(regex,r.text) == None:
 			if (debug):
-				print "No match found, password worked! Tell the others!"
+				print "[%d] No match found, password worked! Tell the others!" % threadNum
 
 			print "Worker %d found a password: %s" % (threadNum, passwords[i])
 			RUNNING = False
 		else:
 			# Match found. Password was wrong.
 			if (debug):
-				print "No match."
+				print "[%d] No match." % threadNum
 			pass
 
 		if RUNNING == False:
 			if (debug):
-				print "Match was found! Lets shut this circus down!"
+				print "[%d] Match was found! Lets shut this circus down!" % threadNum
 			return
 
 		#time.sleep(1)
